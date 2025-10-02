@@ -1,9 +1,11 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { DashboardRoutingModule } from './dashboard-routing.module';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { OverviewComponent } from './pages/overview/overview.component';
-import { CoursesComponent } from './pages/courses/courses.component';
+import { UploadComponent } from './pages/upload/upload.component';
+import { CertificationsComponent } from './pages/certifications/certifications.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 
@@ -11,10 +13,11 @@ import { SettingsComponent } from './pages/settings/settings.component';
   declarations: [
     DashboardComponent,
     OverviewComponent,
-    CoursesComponent,
+    UploadComponent,
+    CertificationsComponent,
     ProfileComponent,
     SettingsComponent,
   ],
-  imports: [CommonModule, DashboardRoutingModule],
+  imports: [CommonModule, RouterModule, DashboardRoutingModule],
 })
 export class DashboardModule {}
