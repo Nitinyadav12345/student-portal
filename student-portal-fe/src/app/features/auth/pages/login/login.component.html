@@ -1,0 +1,51 @@
+<main class="auth-wrapper">
+  <div class="auth-card">
+    <h2>Welcome back</h2>
+
+    <div class="banner banner-error" *ngIf="error">{{ error }}</div>
+
+    <form #f="ngForm" (ngSubmit)="submit(f)" novalidate>
+      <label>
+        Email
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="model.email"
+          #email="ngModel"
+          required
+          email
+          placeholder="you@example.com"
+          autocomplete="email"
+        />
+      </label>
+      <div class="error" *ngIf="email.invalid && (email.touched || f.submitted)">
+        Please enter a valid email.
+      </div>
+
+      <label>
+        Password
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="model.password"
+          #password="ngModel"
+          required
+          minlength="6"
+          placeholder="••••••••"
+          autocomplete="current-password"
+        />
+      </label>
+      <div class="error" *ngIf="password.invalid && (password.touched || f.submitted)">
+        Password must be at least 6 characters.
+      </div>
+
+      <button class="btn-primary" type="submit" [disabled]="submitting">
+        {{ submitting ? 'Signing in...' : 'Sign In' }}
+      </button>
+    </form>
+    <p class="alt">
+      Don't have an account?
+      <a routerLink="/auth/signup">Sign up</a>
+    </p>
+  </div>
+</main>

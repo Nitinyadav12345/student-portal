@@ -1,1 +1,64 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global Theming */
+
+:root {
+  --color-bg: #f8fafc; /* slate-50 */
+  --color-surface: #ffffff;
+  --color-text: #0f172a; /* slate-900 */
+  --color-text-muted: #64748b; /* slate-500 */
+  --color-border: #e2e8f0; /* slate-200 */
+  --color-primary: #3b82f6; /* blue-500 */
+  --color-primary-hover: #2563eb; /* blue-600 */
+  --color-error: #b91c1c; /* red-700 */
+  --color-error-bg: #fee2e2; /* red-100 */
+  --color-error-border: #fecaca; /* red-200 */
+  --elevation-1: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='dark'] {
+  --color-bg: #0b1220; /* deep navy */
+  --color-surface: #111827; /* gray-900 */
+  --color-text: #e5e7eb; /* gray-200 */
+  --color-text-muted: #94a3b8; /* slate-400 */
+  --color-border: #1f2937; /* gray-800 */
+  --color-primary: #93c5fd; /* blue-300 */
+  --color-primary-hover: #bfdbfe; /* blue-200 */
+  --color-error: #fecaca; /* red-200 (text/icon) */
+  --color-error-bg: #3f1d1d; /* deeper red bg for contrast */
+  --color-error-border: #ef4444; /* red-500 */
+  --elevation-1: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Base elements themed */
+button {
+  font: inherit;
+}
+
+input, select, textarea {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.banner-error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border-color: var(--color-error-border);
+}

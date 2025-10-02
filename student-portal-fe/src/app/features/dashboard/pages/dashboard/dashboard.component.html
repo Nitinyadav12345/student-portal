@@ -1,0 +1,35 @@
+<div class="layout" [class.collapsed]="collapsed">
+  <aside class="sidebar">
+    <div class="brand">
+      <button class="collapse-btn" (click)="toggleSidebar()" [attr.aria-label]="collapsed ? 'Expand' : 'Collapse'">
+        {{ collapsed ? '›' : '‹' }}
+      </button>
+      <span class="logo">SP</span>
+      <span class="title">Student Portal</span>
+    </div>
+    <nav class="nav">
+      <a routerLink="/dashboard/overview" routerLinkActive="active">
+        <span class="material-symbols-rounded icon">space_dashboard</span>
+        <span class="label">Overview</span>
+      </a>
+      <a routerLink="/dashboard/courses" routerLinkActive="active">
+        <span class="material-symbols-rounded icon">menu_book</span>
+        <span class="label">Courses</span>
+      </a>
+      <a routerLink="/dashboard/profile" routerLinkActive="active">
+        <span class="material-symbols-rounded icon">account_circle</span>
+        <span class="label">Profile</span>
+      </a>
+      <a routerLink="/dashboard/settings" routerLinkActive="active">
+        <span class="material-symbols-rounded icon">settings</span>
+        <span class="label">Settings</span>
+      </a>
+    </nav>
+    <div class="spacer"></div>
+    <button class="logout" (click)="logout()">Logout</button>
+  </aside>
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+  <div class="scrim" (click)="toggleSidebar()"></div>
+</div>
