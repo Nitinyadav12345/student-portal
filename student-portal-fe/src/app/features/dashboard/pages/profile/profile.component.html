@@ -1,0 +1,21 @@
+<div class="section">
+  <h3>Profile</h3>
+  <form (ngSubmit)="save()" #form="ngForm" class="form">
+    <label>
+      <span>Name</span>
+      <input type="text" name="name" [(ngModel)]="model.name" required />
+    </label>
+    <label>
+      <span>Email</span>
+      <input type="email" name="email" [(ngModel)]="model.email" required />
+    </label>
+    <label>
+      <span>Phone</span>
+      <input type="tel" name="phone" [(ngModel)]="model.phone" />
+    </label>
+    <div class="actions">
+      <button type="submit" [disabled]="form.invalid">Save</button>
+      <span class="msg" *ngIf="message">{{ message }}</span>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,17 @@
+<div class="table-wrapper">
+  <table class="table">
+    <thead>
+      <tr>
+        <th *ngFor="let col of columns">{{ col.header }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="!data || data.length === 0">
+        <td [attr.colspan]="columns?.length || 1" class="empty">{{ emptyMessage }}</td>
+      </tr>
+      <tr *ngFor="let row of data">
+        <td *ngFor="let col of columns">{{ row[col.key] }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

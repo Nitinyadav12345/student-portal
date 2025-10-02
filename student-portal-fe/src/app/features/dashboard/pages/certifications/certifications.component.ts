@@ -1,16 +1,21 @@
 import { Component } from '@angular/core';
+import { TableColumn } from '../../../../shared/components/table/table.component';
 
 @Component({
   selector: 'app-certifications',
-  template: `
-    <div class="section">
-      <h3>Certifications</h3>
-      <p>List of your certifications will appear here.</p>
-      <!-- TODO: Replace with a data-driven list/table -->
-    </div>
-  `,
-  styles: [
-    `.section{padding:1rem;color:var(--color-text)} h3{margin:0 0 .5rem}`
-  ]
+  templateUrl: './certifications.component.html',
+  styleUrls: ['./certifications.component.scss']
 })
-export class CertificationsComponent {}
+export class CertificationsComponent {
+  columns: TableColumn[] = [
+    { key: 'name', header: 'Certificate' },
+    { key: 'provider', header: 'Provider' },
+    { key: 'date', header: 'Date' },
+    { key: 'status', header: 'Status' }
+  ];
+
+  rows = [
+    { name: 'Angular Fundamentals', provider: 'Coursera', date: '2024-11-10', status: 'Verified' },
+    { name: 'TypeScript Advanced', provider: 'Udemy', date: '2025-01-22', status: 'Pending' }
+  ];
+}

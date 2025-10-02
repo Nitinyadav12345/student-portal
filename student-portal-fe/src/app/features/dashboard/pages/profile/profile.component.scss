@@ -1,0 +1,9 @@
+.section{padding:1rem;color:var(--color-text)}
+h3{margin:0 0 .75rem}
+.form{display:grid;gap:.75rem;max-width:420px}
+label{display:grid;gap:.25rem}
+input{padding:.5rem;border:1px solid rgba(0,0,0,.2);border-radius:6px;background:transparent;color:inherit}
+.actions{display:flex;gap:.75rem;align-items:center;margin-top:.25rem}
+button{padding:.5rem .9rem;border-radius:6px;border:0;background:#3b82f6;color:#fff;cursor:pointer}
+button[disabled]{opacity:.6;cursor:not-allowed}
+.msg{color:rgba(0,0,0,.6)}

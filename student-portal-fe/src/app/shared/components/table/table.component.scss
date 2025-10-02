@@ -1,0 +1,5 @@
+.table-wrapper{overflow:auto}
+.table{width:100%;border-collapse:collapse;color:var(--color-text)}
+th,td{padding:.5rem;border-bottom:1px solid rgba(0,0,0,.1)}
+thead th{font-weight:600;text-align:left;background:rgba(0,0,0,.04)}
+.empty{padding:1rem;text-align:center;color:rgba(0,0,0,.6)}
