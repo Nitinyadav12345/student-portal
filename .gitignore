@@ -1,0 +1,60 @@
+# ----------------------
+# Node / Angular ignores
+# ----------------------
+/student-portal-fe/node_modules
+/student-portal-fe/dist
+/student-portal-fe/tmp
+/student-portal-fe/out-tsc
+/student-portal-fe/.angular/cache
+/student-portal-fe/.angular/webpack
+/student-portal-fe/coverage
+/student-portal-fe/.pnp
+/student-portal-fe/pnp.js
+
+# ----------------------
+# Java / Spring Boot ignores
+# ----------------------
+/Student-portal/target/
+/Student-portal/build/
+/Student-portal/.classpath
+/Student-portal/.project
+/Student-portal/.settings/
+/Student-portal/.idea/
+/Student-portal/*.iml
+
+# ----------------------
+# Logs
+# ----------------------
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+hs_err_pid*
+replay_pid*
+
+# ----------------------
+# System files
+# ----------------------
+.DS_Store
+Thumbs.db
+
+# ----------------------
+# IDE / Editors
+# ----------------------
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# ----------------------
+# Environment files (optional)
+# Uncomment if you don’t want to commit secrets
+# /student-portal-fe/src/environments/environment*.ts
+# /Student-portal/src/main/resources/application-*.yml
+# /Student-portal/src/main/resources/application-*.properties
+
+# ----------------------
+# Misc
+# ----------------------
+/out
