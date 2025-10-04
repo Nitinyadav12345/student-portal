@@ -5,12 +5,13 @@
     <div class="banner banner-error" *ngIf="error">{{ error }}</div>
 
     <form #f="ngForm" (ngSubmit)="submit(f)" novalidate>
+      <!-- Full Name -->
       <label>
-        Full name
+        Username
         <input
           type="text"
-          name="name"
-          [(ngModel)]="model.name"
+          name="username"
+          [(ngModel)]="model.username"
           #name="ngModel"
           required
           minlength="2"
@@ -22,6 +23,7 @@
         Name is required (min 2 chars).
       </div>
 
+      <!-- Email -->
       <label>
         Email
         <input
@@ -35,10 +37,14 @@
           autocomplete="email"
         />
       </label>
-      <div class="error" *ngIf="email.invalid && (email.touched || f.submitted)">
+      <div
+        class="error"
+        *ngIf="email.invalid && (email.touched || f.submitted)"
+      >
         Please enter a valid email.
       </div>
 
+      <!-- Password -->
       <label>
         Password
         <input
@@ -52,14 +58,30 @@
           autocomplete="new-password"
         />
       </label>
-      <div class="error" *ngIf="password.invalid && (password.touched || f.submitted)">
+      <div
+        class="error"
+        *ngIf="password.invalid && (password.touched || f.submitted)"
+      >
         Password must be at least 6 characters.
       </div>
 
+      <!-- Role Selection -->
+      <label>
+        Role
+        <select name="role" [(ngModel)]="model.role" required>
+          <option value="student">Student</option>
+          <option value="admin">Admin</option>
+        </select>
+      </label>
+      <div class="error" *ngIf="!model.role && f.submitted">
+        Please select a role.
+      </div>
+
       <button class="btn-primary" type="submit" [disabled]="submitting">
-        {{ submitting ? 'Creating...' : 'Create Account' }}
+        {{ submitting ? "Creating..." : "Create Account" }}
       </button>
     </form>
+
     <p class="alt">
       Already have an account?
       <a routerLink="/auth/login">Sign in</a>

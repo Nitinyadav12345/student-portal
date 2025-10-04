@@ -33,7 +33,7 @@ public class QuestionService {
                         .optionB(m.group(3).trim())
                         .optionC(m.group(4).trim())
                         .optionD(m.group(5).trim())
-                        .correctAnswer(m.group(6).trim())
+                        .selectedAnswer(m.group(6).trim())
                         .build());
             }
         }

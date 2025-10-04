@@ -7,7 +7,7 @@
     </thead>
     <tbody>
       <tr *ngIf="!data || data.length === 0">
-        <td [attr.colspan]="columns?.length || 1" class="empty">{{ emptyMessage }}</td>
+        <td [attr.colspan]="columns.length || 1" class="empty">{{ emptyMessage }}</td>
       </tr>
       <tr *ngFor="let row of data">
         <td *ngFor="let col of columns">{{ row[col.key] }}</td>

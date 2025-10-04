@@ -1,6 +1,7 @@
 package com.example.Student_portal.services;
 
 import com.example.Student_portal.model.*;
+import com.example.Student_portal.repository.QuestionRepository;
 import com.example.Student_portal.repository.UserRepository;
 import com.example.Student_portal.repository.UserResultRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,9 +21,10 @@ public class PdfEvaluationService {
 
     private final UserResultRepository resultRepo;
     private final UserRepository userRepo;
+    private final QuestionRepository questionRepo;
 
-    @Value("${huggingface.api.token}")
-    private String hfApiToken;
+    @Value("${groq.api.key}")
+    private String groqApiKey;
 
     private final Tika tika = new Tika();
 
@@ -31,36 +32,60 @@ public class PdfEvaluationService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 1️⃣ Extract text from PDF
+        // Extract text from PDF
         String pdfText = tika.parseToString(pdfFile.getInputStream());
 
-        // 2️⃣ Split text into questions (simple example, adapt to your PDF format)
         String[] lines = pdfText.split("\n");
         int score = 0;
         StringBuilder answersJson = new StringBuilder("{\"answers\":[");
+
         for (String line : lines) {
-            // Assume format: Question | Options | Selected
             if (line.contains("|")) {
                 String[] parts = line.split("\\|");
-                String question = parts[0].trim();
+
+                // Expecting: Question | A) optionA, B) optionB... | SelectedAnswer
+                String questionText = parts[0].trim();
                 String options = parts[1].trim();
                 String selected = parts[2].trim();
 
-                String prompt = "You are a teacher. A student answered a multiple-choice question.\n" +
-                        "Question: " + question + "\n" +
-                        "Options: " + options + "\n" +
-                        "Selected: " + selected + "\n" +
-                        "Answer only 'CORRECT' or 'WRONG'.";
+                // Split options into A, B, C, D
+                String[] opts = options.split(",");
+                String optionA = opts.length > 0 ? opts[0].trim() : null;
+                String optionB = opts.length > 1 ? opts[1].trim() : null;
+                String optionC = opts.length > 2 ? opts[2].trim() : null;
+                String optionD = opts.length > 3 ? opts[3].trim() : null;
 
-                String llmEval = callHuggingFaceLLM(prompt);
+                // LLM Evaluation
+                String prompt = "You are a teacher. A student answered a multiple-choice question.\n" +
+                                "Question: " + questionText + "\n" +
+                                "Options: " + options + "\n" +
+                                "Selected: " + selected + "\n" +
+                                "Answer only 'CORRECT' or 'WRONG'.";
+
+                String llmEval = callGroqLLM(prompt);
                 boolean correct = llmEval.toUpperCase().contains("CORRECT");
                 if (correct) score++;
 
-                answersJson.append("{\"question\":\"").append(question)
+                // Save Question to DB
+                Question q = Question.builder()
+                        .questionText(questionText)
+                        .optionA(optionA)
+                        .optionB(optionB)
+                        .optionC(optionC)
+                        .optionD(optionD)
+                        .selectedAnswer(selected)
+                        .correctAnswer(correct ? selected : null) // optional
+                        .build();
+
+                questionRepo.save(q);
+
+                // For UserResult JSON
+                answersJson.append("{\"question\":\"").append(questionText)
                         .append("\",\"selected\":\"").append(selected)
                         .append("\",\"llmEval\":\"").append(llmEval).append("\"},");
             }
         }
+
         if (answersJson.charAt(answersJson.length() - 1) == ',') {
             answersJson.deleteCharAt(answersJson.length() - 1);
         }
@@ -75,21 +100,36 @@ public class PdfEvaluationService {
         return resultRepo.save(result);
     }
 
-    private String callHuggingFaceLLM(String prompt) {
+    private String callGroqLLM(String prompt) {
         try {
             HttpClient client = HttpClient.newHttpClient();
 
-            String jsonBody = "{\"inputs\": \"" + prompt.replace("\"", "\\\"") + "\"}";
+            String jsonBody = String.format("""
+            {
+              "model": "llama3-8b-8192",
+              "messages": [
+                {"role": "system", "content": "You are a teacher."},
+                {"role": "user", "content": "%s"}
+              ],
+              "temperature": 0
+            }
+            """, prompt.replace("\"", "\\\""));
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api-inference.huggingface.co/models/bigscience/bloom"))
-                    .header("Authorization", "Bearer " + hfApiToken)
+                    .uri(URI.create("https://api.groq.com/openai/v1/chat/completions"))
+                    .header("Authorization", "Bearer " + groqApiKey)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            return response.body();
+
+            String body = response.body();
+            int idx = body.indexOf("\"content\":");
+            if (idx != -1) {
+                return body.substring(idx + 11, body.indexOf("\"", idx + 11));
+            }
+            return body;
 
         } catch (Exception e) {
             e.printStackTrace();

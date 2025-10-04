@@ -13,12 +13,13 @@ public class AuthService {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     public User register(User user) {
+        user.setId(null);
         user.setPasswordHash(encoder.encode(user.getPasswordHash()));
         return userRepository.save(user);
     }
 
-    public User login(String username, String password) {
-        User user = userRepository.findByUsername(username);
+    public User login(String email, String password) {
+        User user = userRepository.findByEmail(email);
         if (user != null && encoder.matches(password, user.getPasswordHash())) {
             return user;
         }

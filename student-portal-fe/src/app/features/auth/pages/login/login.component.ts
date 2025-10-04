@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth.service';
-import { LoginPayload } from '../../models/auth.models';
+import { User } from '../../models/auth.models';
 import { Router } from '@angular/router';
 import { AuthStateService } from '../../../../core/services/auth-state.service';
 
@@ -11,25 +11,35 @@ import { AuthStateService } from '../../../../core/services/auth-state.service';
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
-  model: LoginPayload = { email: '', password: '' };
+  model: Partial<User> & { email: string; password: string } = { email: '', password: '' };
 
   submitting = false;
   error = '';
 
   constructor(private auth: AuthService, private authState: AuthStateService, private router: Router) {}
 
-  async submit(f: NgForm): Promise<void> {
+  submit(f: NgForm): void {
     if (f.invalid) return;
     this.submitting = true;
     this.error = '';
-    try {
-      const res = await this.auth.login(this.model);
-      this.authState.setSession(res);
-      await this.router.navigate(['/dashboard']);
-    } catch (e) {
-      this.error = 'Unable to sign in. Please try again.';
-    } finally {
-      this.submitting = false;
-    }
+
+    this.auth.login(this.model).subscribe({
+      next: (res) => {
+        this.authState.setSession(res);
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        if (err?.status === 401 || err?.status === 403) {
+          this.error = 'Invalid credentials';
+        } else {
+          this.error = 'Unable to sign in. Please try again.';
+        }
+        this.submitting = false;
+      },
+      complete: () => {
+        this.submitting = false;
+      }
+    });
   }
 }
+

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class AuthController {
 
     private final AuthService authService;
@@ -20,7 +21,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<User> login(@RequestBody User user) {
-        User u = authService.login(user.getUsername(), user.getPasswordHash());
+        User u = authService.login(user.getEmail(), user.getPasswordHash());
         if (u != null) return ResponseEntity.ok(u);
         return ResponseEntity.status(401).build();
     }

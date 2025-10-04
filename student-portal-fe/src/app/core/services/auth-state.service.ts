@@ -4,7 +4,6 @@ import { AuthResponse, User } from '../../features/auth/models/auth.models';
 
 const TOKEN_KEY = 'auth.token';
 const USER_KEY = 'auth.user';
-
 @Injectable({ providedIn: 'root' })
 export class AuthStateService {
   private userSubject = new BehaviorSubject<User | null>(null);
@@ -24,20 +23,27 @@ export class AuthStateService {
 
   setSession(res: AuthResponse): void {
     localStorage.setItem(TOKEN_KEY, res.token);
-    localStorage.setItem(USER_KEY, JSON.stringify(res.user));
-    this.userSubject.next(res.user);
+    // Build a safe user object even if backend omits `user`
+    const apiUser = (res as any)?.user ?? {};
+    const rawRole = String(apiUser.role ?? '').toLowerCase();
+    let mappedRole: User['role'] = 'student';
+    if (rawRole.includes('admin')) mappedRole = 'admin';
+    else if (rawRole.includes('student')) mappedRole = 'student';
+
+    const normalizedUser: User = {
+      id: apiUser.id,
+      username: apiUser.username ?? '',
+      email: apiUser.email ?? '',
+      role: mappedRole,
+    };
+    localStorage.setItem(USER_KEY, JSON.stringify(normalizedUser));
+    this.userSubject.next(normalizedUser);
   }
 
   clear(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     this.userSubject.next(null);
-  }
-
-  hasAnyRole(roles: string[]): boolean {
-    const u = this.userSubject.value;
-    if (!u || !u.roles?.length) return false;
-    return roles.some((r) => u.roles.includes(r as any));
   }
 
   private restore(): void {

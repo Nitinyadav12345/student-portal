@@ -17,8 +17,15 @@ export class RoleGuard implements CanActivate {
     // If no roles are specified, any logged-in user is allowed
     if (!requiredRoles.length) return true;
 
-    // Check role intersection
-    const ok = this.authState.hasAnyRole(requiredRoles);
-    return ok ? true : this.router.createUrlTree(['/auth/login']);
+    // Check role intersection (case-insensitive)
+    const user = this.authState.user;
+    const allowed = requiredRoles.map(r => String(r).toLowerCase());
+    const userRole = String(user?.role ?? '').toLowerCase();
+    if (userRole && allowed.includes(userRole)) {
+      return true;
+    }
+    // Redirect unauthorized roles away from the protected route
+    return this.router.createUrlTree(['/auth/login']);
   }
 }
+
