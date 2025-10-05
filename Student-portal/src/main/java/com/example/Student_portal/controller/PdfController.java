@@ -1,6 +1,5 @@
 package com.example.Student_portal.controller;
 
-import com.example.Student_portal.dto.PdfUploadRequest;
 import com.example.Student_portal.model.UserResult;
 import com.example.Student_portal.services.PdfEvaluationService;
 import lombok.RequiredArgsConstructor;
