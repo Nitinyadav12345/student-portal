@@ -19,6 +19,7 @@ export class AuthService {
 
   signup(user: User): Observable<AuthResponse> {
     const payload = {
+      username: user.username,
       email: user.email,
       passwordHash: user.password,
       role: user.role,
