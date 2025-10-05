@@ -17,5 +17,7 @@ public class UserResult {
     private User user;
 
     private int score;
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String answersJson; // store user's answers
 }

@@ -4,6 +4,10 @@ import com.example.Student_portal.model.*;
 import com.example.Student_portal.repository.QuestionRepository;
 import com.example.Student_portal.repository.UserRepository;
 import com.example.Student_portal.repository.UserResultRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +18,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,63 +40,88 @@ public class PdfEvaluationService {
 
         // Extract text from PDF
         String pdfText = tika.parseToString(pdfFile.getInputStream());
+        String[] lines = pdfText.split("\\r?\\n");
 
-        String[] lines = pdfText.split("\n");
         int score = 0;
         StringBuilder answersJson = new StringBuilder("{\"answers\":[");
 
+        String questionText = null;
+        List<String> options = new ArrayList<>();
+        String selected = null;
+
         for (String line : lines) {
-            if (line.contains("|")) {
-                String[] parts = line.split("\\|");
+            line = line.trim();
+            if (line.isEmpty()) continue;
 
-                // Expecting: Question | A) optionA, B) optionB... | SelectedAnswer
-                String questionText = parts[0].trim();
-                String options = parts[1].trim();
-                String selected = parts[2].trim();
+            // Start of a question
+            if (line.startsWith("Question")) {
+                questionText = line.substring(line.indexOf(":") + 1).trim();
+                options.clear();
+            }
+            // Options A/B/C/D
+            else if (line.matches("[A-D]\\).*")) {
+                options.add(line.substring(2).trim());
+            }
+            // Selected Answer
+            else if (line.startsWith("Selected Answer:")) {
+                selected = line.substring(line.indexOf(":") + 1).trim();
 
-                // Split options into A, B, C, D
-                String[] opts = options.split(",");
-                String optionA = opts.length > 0 ? opts[0].trim() : null;
-                String optionB = opts.length > 1 ? opts[1].trim() : null;
-                String optionC = opts.length > 2 ? opts[2].trim() : null;
-                String optionD = opts.length > 3 ? opts[3].trim() : null;
+                // Handle not attempted
+                if (selected.isEmpty() || selected.equals("_______")) {
+                    selected = "Not Attempted";
+                }
 
-                // LLM Evaluation
-                String prompt = "You are a teacher. A student answered a multiple-choice question.\n" +
-                                "Question: " + questionText + "\n" +
-                                "Options: " + options + "\n" +
-                                "Selected: " + selected + "\n" +
-                                "Answer only 'CORRECT' or 'WRONG'.";
+                // Evaluate correct answer using Groq API
+                String optionsText = String.join(", ", options);
+                String prompt = "You are a teacher. Determine the correct answer for this multiple-choice question.\n" +
+                        "Question: " + questionText + "\n" +
+                        "Options: " + optionsText + "\n" +
+                        "Answer only with the correct option letter (A/B/C/D).";
 
-                String llmEval = callGroqLLM(prompt);
-                boolean correct = llmEval.toUpperCase().contains("CORRECT");
-                if (correct) score++;
+                String correctOption = callGroqLLM(prompt).trim().toUpperCase();
+                if (correctOption.isEmpty() || !correctOption.matches("[A-D]")) {
+                    correctOption = null; // fallback if LLM fails
+                }
 
-                // Save Question to DB
+                // ✅ If the question was not attempted, still store its correct answer
+                boolean correct = false;
+                if (!selected.equalsIgnoreCase("Not Attempted") && correctOption != null) {
+                    correct = selected.equalsIgnoreCase(correctOption);
+                    if (correct) score++;
+                }
+
+                // Save question to DB
                 Question q = Question.builder()
                         .questionText(questionText)
-                        .optionA(optionA)
-                        .optionB(optionB)
-                        .optionC(optionC)
-                        .optionD(optionD)
+                        .optionA(options.size() > 0 ? options.get(0) : null)
+                        .optionB(options.size() > 1 ? options.get(1) : null)
+                        .optionC(options.size() > 2 ? options.get(2) : null)
+                        .optionD(options.size() > 3 ? options.get(3) : null)
                         .selectedAnswer(selected)
-                        .correctAnswer(correct ? selected : null) // optional
+                        .correctAnswer(correctOption)
                         .build();
-
                 questionRepo.save(q);
 
-                // For UserResult JSON
+                // Append to JSON result
                 answersJson.append("{\"question\":\"").append(questionText)
                         .append("\",\"selected\":\"").append(selected)
-                        .append("\",\"llmEval\":\"").append(llmEval).append("\"},");
+                        .append("\",\"correct\":\"").append(correctOption == null ? "" : correctOption)
+                        .append("\"},");
+
+                // Reset for next question
+                questionText = null;
+                options.clear();
+                selected = null;
             }
         }
 
+        // Remove trailing comma
         if (answersJson.charAt(answersJson.length() - 1) == ',') {
             answersJson.deleteCharAt(answersJson.length() - 1);
         }
         answersJson.append("]}");
 
+        // Save UserResult
         UserResult result = UserResult.builder()
                 .user(user)
                 .score(score)
@@ -100,20 +131,34 @@ public class PdfEvaluationService {
         return resultRepo.save(result);
     }
 
+    // =======================
+    // Helper: Groq LLM Call
+    // =======================
     private String callGroqLLM(String prompt) {
         try {
             HttpClient client = HttpClient.newHttpClient();
 
-            String jsonBody = String.format("""
-            {
-              "model": "llama3-8b-8192",
-              "messages": [
-                {"role": "system", "content": "You are a teacher."},
-                {"role": "user", "content": "%s"}
-              ],
-              "temperature": 0
-            }
-            """, prompt.replace("\"", "\\\""));
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode root = mapper.createObjectNode();
+            root.put("model", "llama-3.1-8b-instant");
+            root.put("temperature", 0);
+            root.put("stream", false);
+
+            ArrayNode messages = mapper.createArrayNode();
+
+            ObjectNode systemMsg = mapper.createObjectNode();
+            systemMsg.put("role", "system");
+            systemMsg.put("content", "You are a teacher.");
+            messages.add(systemMsg);
+
+            ObjectNode userMsg = mapper.createObjectNode();
+            userMsg.put("role", "user");
+            userMsg.put("content", prompt);
+            messages.add(userMsg);
+
+            root.set("messages", messages);
+
+            String jsonBody = mapper.writeValueAsString(root);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.groq.com/openai/v1/chat/completions"))
@@ -124,16 +169,19 @@ public class PdfEvaluationService {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            String body = response.body();
-            int idx = body.indexOf("\"content\":");
-            if (idx != -1) {
-                return body.substring(idx + 11, body.indexOf("\"", idx + 11));
+            System.out.println("Groq Status: " + response.statusCode());
+            System.out.println("Groq Response: " + response.body());
+
+            if (response.statusCode() != 200) {
+                return "";
             }
-            return body;
+
+            JsonNode rootNode = mapper.readTree(response.body());
+            return rootNode.path("choices").get(0).path("message").path("content").asText();
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "LLM evaluation failed";
+            return "";
         }
     }
 }

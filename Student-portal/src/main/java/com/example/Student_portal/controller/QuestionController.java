@@ -15,15 +15,6 @@ import java.util.List;
 public class QuestionController {
     private final QuestionService questionService;
 
-    @PostMapping("/upload")
-    public ResponseEntity<List<Question>> uploadPdf(@RequestParam("file") MultipartFile file) {
-        try {
-            return ResponseEntity.ok(questionService.uploadPdf(file));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).build();
-        }
-    }
-
     @GetMapping
     public ResponseEntity<List<Question>> getAll() {
         return ResponseEntity.ok(questionService.getAllQuestions());

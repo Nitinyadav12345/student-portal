@@ -21,23 +21,18 @@ export class AuthStateService {
     return localStorage.getItem(TOKEN_KEY);
   }
 
-  setSession(res: AuthResponse): void {
-    localStorage.setItem(TOKEN_KEY, res.token);
-    // Build a safe user object even if backend omits `user`
-    const apiUser = (res as any)?.user ?? {};
-    const rawRole = String(apiUser.role ?? '').toLowerCase();
-    let mappedRole: User['role'] = 'student';
-    if (rawRole.includes('admin')) mappedRole = 'admin';
-    else if (rawRole.includes('student')) mappedRole = 'student';
+  // Accept either a full AuthResponse (with token, user) or just a User object
+  setSession(input: AuthResponse | User): void {
+    const maybeRes = input as AuthResponse as any;
+    const user: User = (maybeRes && maybeRes.user) ? (maybeRes.user as User) : (input as User);
+    const token: string | undefined = maybeRes && typeof maybeRes.token === 'string' ? maybeRes.token : undefined;
 
-    const normalizedUser: User = {
-      id: apiUser.id,
-      username: apiUser.username ?? '',
-      email: apiUser.email ?? '',
-      role: mappedRole,
-    };
-    localStorage.setItem(USER_KEY, JSON.stringify(normalizedUser));
-    this.userSubject.next(normalizedUser);
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+    }
+    // Always store the full user object
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    this.userSubject.next(user);
   }
 
   clear(): void {

@@ -1,0 +1,16 @@
+.upload-wrapper{min-height:calc(100dvh - 8rem);display:grid;place-items:center;padding:1.5rem}
+.upload-card{background:#fff;border:1px solid #e9e9e9;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.06);padding:2rem;max-width:560px;width:100%;color:#111827}
+h3{margin:0 0 .25rem;font-size:1.5rem;font-weight:700}
+.sub{margin:0 0 1rem;color:#6b7280}
+.dropzone{display:flex;align-items:center;gap:.75rem;justify-content:center;padding:1.25rem;border:2px dashed #cbd5e1;border-radius:12px;background:#f8fafc;transition:border-color .2s, background .2s}
+.dropzone.dragging{border-color:#2563eb;background:#eff6ff}
+.choose{display:inline-block;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:.6rem 1rem;font-weight:600;cursor:pointer}
+.hint{color:#6b7280}
+.file-chip{display:inline-flex;align-items:center;gap:.5rem;margin:1rem 0;padding:.5rem .75rem;border:1px solid #e5e7eb;border-radius:999px;background:#f9fafb}
+.file-chip .name{max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-chip .clear{background:transparent;border:none;color:#6b7280;font-size:1rem;cursor:pointer}
+.btn-primary{margin-top:.25rem;padding:.8rem 1rem;border:none;border-radius:10px;background:#2563eb;color:#fff;font-weight:700;cursor:pointer;transition:background .2s, transform .05s}
+.btn-primary:hover{background:#1e4fd8}
+.btn-primary:active{transform:translateY(1px)}
+.btn-primary[disabled]{opacity:.7;cursor:not-allowed}
+.banner{margin-top:1rem;color:#374151}

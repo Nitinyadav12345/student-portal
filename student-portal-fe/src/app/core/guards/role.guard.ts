@@ -9,8 +9,8 @@ export class RoleGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): boolean | UrlTree {
     const requiredRoles: string[] = route.data['roles'] ?? [];
 
-    // Must be logged in
-    if (!this.authState.token || !this.authState.user) {
+    // Must be logged in (user must exist; token optional)
+    if (!this.authState.user) {
       return this.router.createUrlTree(['/auth/login']);
     }
 
